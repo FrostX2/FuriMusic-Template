@@ -102,7 +102,7 @@
       els.bigDot.className = 'big-dot offline';
       els.bigText.textContent = 'Offline';
       els.eq.classList.remove('active');
-      dismissLoading();
+      requestAnimationFrame(() => dismissLoading());
       return;
     }
 
@@ -120,7 +120,7 @@
 
     renderStats(s);
     renderNowPlaying(s);
-    dismissLoading();
+    requestAnimationFrame(() => dismissLoading());
   }
 
   async function loadInvite() {

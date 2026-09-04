@@ -43,8 +43,6 @@ const App = {
       this.fetchJSON('/api/settings'),
     ]);
 
-    this.dismissLoading();
-
     const nodes = lavalink?.nodes || [];
     const connectedNodes = nodes.filter(n => n.connected).length;
     const playerByGuild = {};
@@ -99,6 +97,7 @@ const App = {
         <div class="invite-box">${invite?.url || 'N/A'}</div>
       </div>
     `;
+    requestAnimationFrame(() => this.dismissLoading());
   },
 
   statsCardsHTML(status, nodes, connectedNodes) {
