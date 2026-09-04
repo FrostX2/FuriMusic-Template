@@ -14,7 +14,7 @@
 
 > **"My music bot has better rhythm than I do. Sad."**
 
-A **FuriMusic** with instant audio, supporting **YouTube**, **Spotify**, **YouTube Music**, and **SoundCloud**. Drop a link, type a name, and let the frozen vibes take over.
+A **Discord music bot** with instant audio, supporting **YouTube**, **Spotify**, **YouTube Music**, and **SoundCloud**. Drop a link, type a name, and let the vibes take over.
 
 ---
 
@@ -26,10 +26,12 @@ A **FuriMusic** with instant audio, supporting **YouTube**, **Spotify**, **YouTu
 - **Volume control** — 0 to 200
 - **Auto-leave** — 2 min after queue ends, instantly if everyone ghosts
 - **Queue persistence** — SQLite-backed queue survives bot restarts, auto-join and resume if users are in voice
+- **Channel ID persistence** — music channel and category IDs are stored in the database, so the bot reuses existing channels across restarts instead of searching by name
 - **Redesigned now-playing embed** — a single embed in the music channel that auto-replaces itself, with a live progress bar, artist, volume, loop state and requester info
-- **Added-to-queue notifications** — paste a song name or link and get a *"Added to Queue"* card that cleans itself up after 3 seconds
-- **Clean command handling** — command messages are deleted and the bot replies 3 seconds later
-- **Admin panel** — web dashboard at `0.0.0.0:13426`
+- **Added-to-queue notifications** — paste a song name or link and get an *"Added to Queue"* card that cleans itself up after 3 seconds
+- **Clean command handling** — command messages are deleted and bot replies disappear after 3 seconds
+- **Loading screen** — animated spinner with cycling text on all web pages
+- **Admin panel** — Furina-themed web dashboard with responsive navigation
 - **Custom bots** — add and manage multiple bot tokens
 - **Invite generator** — one-click bot invite links
 - **Password-protected** — session auth with "Remember me" option
@@ -40,9 +42,9 @@ A **FuriMusic** with instant audio, supporting **YouTube**, **Spotify**, **YouTu
 
 Every server gets a **🎵┊𝓯𝓾𝓻𝓲𝓶𝓾𝓼𝓲𝓬** text channel. It's a self-cleaning music hub:
 
-- **Paste a song name or link** — the bot plays it and posts an *"Added to Queue"* card (song title, duration, channel). Both your message and the card are deleted after **3 seconds**.
+- **Paste a song name or link** — the bot plays it and posts an *"Added to Queue"* card. Both your message and the card are deleted after **3 seconds**.
 - **One persistent now-playing embed** — when a track starts, any existing embed in the channel is cleared silently and a single redesigned now-playing embed takes its place. It stays until the track ends.
-- **Commands** — command messages are deleted immediately, and the bot replies **3 seconds** later so the channel stays clean.
+- **Commands** — command messages are deleted immediately, and bot replies disappear **3 seconds** later so the channel stays clean.
 
 ---
 
@@ -94,9 +96,9 @@ The admin panel will be available at `http://0.0.0.0:13426`.
 | `RECONNECT_COOLDOWN` | No | Auto-reconnect cooldown when all nodes are down, in ms (default: 900000 = 15 min) |
 | `RECONNECT_CHECK_INTERVAL` | No | How often to check for auto-reconnect, in ms (default: 60000) |
 | `WEB_PORT` | No | Admin panel port (default: 13426) |
+| `ADMIN_USERNAME` | No | Admin panel username (default: admin) |
 | `ADMIN_PASSWORD` | No | Admin panel password (default: admin123) |
 | `SESSION_SECRET` | No | Session encryption key (auto-generated if empty) |
-| `WAIT_FOR_NODE` | No | Set `false` to skip waiting for Lavalink node |
 
 ---
 
@@ -146,16 +148,19 @@ auto-retries after `RECONNECT_COOLDOWN` (default 15 min). Run `/reconnect` (or
 
 Two views, split by access:
 
-- **Public status page** (`/`) — live bot status, stats, and now-playing, no login required
-- **Admin dashboard** (`/admin`) — full control, protected by username + password
+- **Public status page** (`/`) — live bot status, stats, now-playing, and invite button. No login required.
+- **Admin dashboard** (`/admin`) — full control, protected by username + password.
 
 The admin dashboard provides:
 
 - **Dashboard** — bot status, guild count, active players, latency, Lavalink status, uptime
 - **Guilds** — list all servers with icons, member count, music channel
-- **Players** — view/control active players with full playback controls, queue management (clear queue), volume, loop
+- **Players** — view/control active players with full playback controls, queue management, volume, loop
+- **Lavalink Nodes** — live status of all configured audio nodes with failover info
 - **Custom Bots** — add/remove/activate custom bot tokens
 - **Invite Bot** — one-click invite link generator
+
+Both pages feature a **responsive navigation bar** (hamburger menu on mobile) and a **loading screen** with an animated spinner and cycling text.
 
 Default login: `admin` / `admin123` (change via `ADMIN_USERNAME` and `ADMIN_PASSWORD` in `.env`)
 
@@ -174,9 +179,11 @@ Default login: `admin` / `admin123` (change via `ADMIN_USERNAME` and `ADMIN_PASS
 | `!loop` | `/loop` | Forever and ever |
 | `!queue` | `/queue` | What's next? |
 | `!nowplaying` / `!np` | `/nowplaying` `/np` | What's this? |
-| `!remove` | `/remove` | Remove a song (or `/remove all:true` to clear queue) |
+| `!remove` | `/remove` | Remove a song |
 | `!back` | `/back` | Previous track |
 | `!filter` | `/filter` | Audio filters |
+| `!reconnect` | `/reconnect` | Re-forge Lavalink connection |
+| `!fixme` | `/fixme` | Diagnose and repair the bot |
 | `!help` | `/help` | You're looking at it |
 
 ---
