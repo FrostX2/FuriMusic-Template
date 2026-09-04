@@ -121,4 +121,20 @@ function saveQueueSettings(guildId, voiceChannelId, textChannelId) {
   setSetting(guildId, 'textChannelId', textChannelId);
 }
 
-module.exports = { init, saveQueue, loadQueue, clearQueue, setSetting, getSetting, addBot, getBots, getBot, deleteBot, setActiveBot, getActiveBot, getQueueSettings, saveQueueSettings };
+function getChannelIds(guildId) {
+  if (!db) return null;
+  const cat = db.prepare(`SELECT value FROM settings WHERE guild_id = ? AND key = 'categoryId'`).get(guildId);
+  const text = db.prepare(`SELECT value FROM settings WHERE guild_id = ? AND key = 'textChannelId'`).get(guildId);
+  const voice = db.prepare(`SELECT value FROM settings WHERE guild_id = ? AND key = 'voiceChannelId'`).get(guildId);
+  if (!cat && !text && !voice) return null;
+  return { categoryId: cat?.value || null, textChannelId: text?.value || null, voiceChannelId: voice?.value || null };
+}
+
+function saveChannelIds(guildId, categoryId, textChannelId, voiceChannelId) {
+  if (!db) return;
+  setSetting(guildId, 'categoryId', categoryId);
+  setSetting(guildId, 'textChannelId', textChannelId);
+  setSetting(guildId, 'voiceChannelId', voiceChannelId);
+}
+
+module.exports = { init, saveQueue, loadQueue, clearQueue, setSetting, getSetting, addBot, getBots, getBot, deleteBot, setActiveBot, getActiveBot, getQueueSettings, saveQueueSettings, getChannelIds, saveChannelIds };

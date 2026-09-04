@@ -1,6 +1,5 @@
 (function () {
   const els = {
-    statusPill: document.getElementById('statusPill'),
     topbarDot: document.getElementById('topbarDot'),
     statusText: document.getElementById('statusText'),
     bigDot: document.getElementById('bigDot'),
@@ -90,19 +89,25 @@
     els.nowPlaying.innerHTML = `<div class="np-list">${list.map(npItemHTML).join('')}</div>`;
   }
 
+  function dismissLoading() {
+    const ls = document.getElementById('loadingScreen');
+    if (ls) ls.classList.add('hidden');
+  }
+
   async function poll() {
     const s = await fetchJSON('/api/status');
     if (!s) {
       els.statusText.textContent = 'Offline';
-      els.topbarDot.className = 'dot offline';
+      els.topbarDot.className = 'navbar-dot offline';
       els.bigDot.className = 'big-dot offline';
       els.bigText.textContent = 'Offline';
       els.eq.classList.remove('active');
+      dismissLoading();
       return;
     }
 
     const online = !!s.ready;
-    els.topbarDot.className = 'dot ' + (online ? 'online' : 'connecting');
+    els.topbarDot.className = 'navbar-dot ' + (online ? 'online' : 'connecting');
     els.statusText.textContent = online ? `Online · ${s.guilds} servers · ${s.latency}ms` : 'Connecting';
     els.bigDot.className = 'big-dot ' + (online ? 'online' : 'connecting');
     els.bigText.textContent = online ? 'Online' : 'Connecting';
@@ -115,8 +120,16 @@
 
     renderStats(s);
     renderNowPlaying(s);
+    dismissLoading();
+  }
+
+  async function loadInvite() {
+    const data = await fetchJSON('/api/invite');
+    const btn = document.getElementById('inviteBtn');
+    if (btn && data?.url) btn.href = data.url;
   }
 
   poll();
+  loadInvite();
   setInterval(poll, 10000);
 })();

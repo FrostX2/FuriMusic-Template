@@ -1,4 +1,5 @@
 const { InteractionType } = require("discord.js");
+const { scheduleDelete } = require("../../functions/ui");
 
 module.exports = {
     name: "interactionCreate",
@@ -12,6 +13,8 @@ module.exports = {
 
             try {
                 await command.execute(interaction, client);
+                const reply = await interaction.fetchReply().catch(() => null);
+                scheduleDelete(reply);
             } catch (error) {
                 console.log(error);
                 await interaction.reply({

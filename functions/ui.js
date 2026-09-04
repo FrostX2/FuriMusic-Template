@@ -96,6 +96,11 @@ function buildNowPlaying(client, { track, queue, player, position }) {
   return embed;
 }
 
+function scheduleDelete(message, delay = RESPONSE_DELAY) {
+  if (!message?.deletable) return;
+  setTimeout(() => message.delete().catch(() => {}), delay);
+}
+
 module.exports = {
   RESPONSE_DELAY,
   fmt,
@@ -106,4 +111,5 @@ module.exports = {
   buildAdded,
   buildAddedPlaylist,
   buildNowPlaying,
+  scheduleDelete,
 };

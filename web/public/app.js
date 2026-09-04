@@ -43,6 +43,8 @@ const App = {
       this.fetchJSON('/api/settings'),
     ]);
 
+    this.dismissLoading();
+
     const nodes = lavalink?.nodes || [];
     const connectedNodes = nodes.filter(n => n.connected).length;
     const playerByGuild = {};
@@ -458,11 +460,18 @@ const App = {
     this.statusInterval = setInterval(poll, 10000);
   },
 
+  dismissLoading() {
+    const ls = document.getElementById('loadingScreen');
+    if (ls) ls.classList.add('hidden');
+  },
+
   updateStatusUI(status) {
     if (!status) return;
     const online = !!status.ready;
-    document.getElementById('topbarDot').className = 'status-dot ' + (online ? 'online' : 'connecting');
-    document.getElementById('topbarStatus').textContent = online ? `Online · ${status.guilds} servers · ${status.latency}ms` : 'Connecting';
+    const dot = document.getElementById('topbarDot');
+    const txt = document.getElementById('topbarStatus');
+    if (dot) dot.className = 'navbar-dot ' + (online ? 'online' : 'connecting');
+    if (txt) txt.textContent = online ? `Online · ${status.guilds} servers · ${status.latency}ms` : 'Connecting';
     if (status.version) {
       document.querySelectorAll('.js-version').forEach(el => { el.textContent = `v${status.version}`; });
     }

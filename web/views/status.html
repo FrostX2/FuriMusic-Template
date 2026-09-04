@@ -3,31 +3,39 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<meta name="theme-color" content="#0b0e1e">
+<meta name="theme-color" content="#0a0d1a">
 <title>FuriMusic - Live Status</title>
 <link rel="stylesheet" href="/status.css">
 </head>
 <body>
+<div class="loading-screen" id="loadingScreen">
+  <div class="loading-spinner-ring"></div>
+  <div class="loading-text" id="loadingText">Loading...</div>
+</div>
+
 <div class="app">
-  <header class="topbar">
-    <div class="brand">
-      <div class="badge">
-        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-          <path d="M9 18V5l12-2v13"/>
-          <circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/>
+  <header class="navbar">
+    <a href="/" class="navbar-brand">
+      <div class="navbar-logo">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+          <path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/>
         </svg>
       </div>
-      <span class="logo">FuriMusic</span>
-      <span class="version js-version">v&ndash;</span>
+      <span class="navbar-title">FuriMusic</span>
+      <span class="navbar-version js-version">v&ndash;</span>
+    </a>
+    <div class="navbar-links" id="navLinks">
+      <span class="navbar-pill"><span class="navbar-dot" id="topbarDot"></span><span id="statusText">Loading...</span></span>
+      <a href="/admin" class="navbar-link">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg>
+        Admin
+      </a>
     </div>
-    <div class="actions">
-      <span class="pill" id="statusPill">
-        <span class="dot" id="topbarDot"></span>
-        <span id="statusText">Loading...</span>
-      </span>
-      <a href="/admin" class="btn btn-primary">Admin Panel</a>
-    </div>
+    <button class="navbar-hamburger" id="navHamburger" aria-label="Menu">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 12h18M3 6h18M3 18h18"/></svg>
+    </button>
   </header>
+  <div class="navbar-overlay" id="navOverlay"></div>
 
   <main>
     <section class="hero">
@@ -43,6 +51,13 @@
     </section>
 
     <section class="stats" id="stats" aria-label="Bot statistics"></section>
+
+    <section class="invite-section">
+      <a href="#" id="inviteBtn" class="btn btn-primary invite-btn" target="_blank" rel="noopener">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg>
+        Invite FuriMusic
+      </a>
+    </section>
 
     <section class="playing">
       <div class="section-head">
@@ -61,6 +76,23 @@
   </footer>
 </div>
 
+<script>
+document.getElementById('navHamburger')?.addEventListener('click', () => {
+  document.getElementById('navLinks').classList.toggle('open');
+  document.getElementById('navOverlay').classList.toggle('open');
+});
+document.getElementById('navOverlay')?.addEventListener('click', () => {
+  document.getElementById('navLinks').classList.remove('open');
+  document.getElementById('navOverlay').classList.remove('open');
+});
+
+(function() {
+  let n = 0;
+  const dots = ['Loading.', 'Loading..', 'Loading...'];
+  const el = document.getElementById('loadingText');
+  setInterval(() => { n = (n + 1) % dots.length; el.textContent = dots[n]; }, 400);
+})();
+</script>
 <script src="/status.js"></script>
 </body>
 </html>

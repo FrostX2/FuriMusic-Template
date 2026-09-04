@@ -1,5 +1,9 @@
 const ui = require("../../functions/ui");
 
+function autoDelete(msg) {
+  if (msg?.deletable) setTimeout(() => msg.delete().catch(() => {}), ui.RESPONSE_DELAY);
+}
+
 const textHandlers = {
   async play(client, message, args, ctx) {
     const keyword = args.join(" ");
@@ -199,7 +203,9 @@ module.exports = {
         started: Date.now(),
         async reply(payload, opts = {}) {
           await ui.waitUntil(ctx.started, opts.delay ?? ui.RESPONSE_DELAY);
-          return message.channel.send(payload);
+          const reply = await message.channel.send(payload);
+          autoDelete(reply);
+          return reply;
         },
       };
 

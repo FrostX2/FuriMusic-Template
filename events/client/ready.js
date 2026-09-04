@@ -1,16 +1,27 @@
 const { ActivityType, ChannelType, PermissionsBitField } = require("discord.js");
 
 async function ensureMusicChannels(client) {
+  const db = require('../../db');
   const setup = {};
   const channelName = '🎵┊𝓯𝓾𝓻𝓲𝓶𝓾𝓼𝓲𝓬';
   const voiceName = '🔊┊𝓿𝓸𝓲𝓬𝓮';
   const categoryName = '🎵┊𝓶𝓾𝓼𝓲𝓬';
   for (const guild of client.guilds.cache.values()) {
-    let category;
-    try {
-      const channels = await guild.channels.fetch();
-      category = channels.find(c => c.name === categoryName && c.type === ChannelType.GuildCategory);
-    } catch {}
+    const saved = db.getChannelIds(guild.id);
+
+    let category = null;
+    if (saved?.categoryId) {
+      try {
+        const fetched = await guild.channels.fetch(saved.categoryId);
+        if (fetched?.type === ChannelType.GuildCategory) category = fetched;
+      } catch {}
+    }
+    if (!category) {
+      try {
+        const channels = await guild.channels.fetch();
+        category = channels.find(c => c.name === categoryName && c.type === ChannelType.GuildCategory);
+      } catch {}
+    }
     if (!category) {
       try {
         category = await guild.channels.create({
@@ -22,11 +33,19 @@ async function ensureMusicChannels(client) {
       }
     }
 
-    let channel;
-    try {
-      const channels = await guild.channels.fetch();
-      channel = channels.find(c => c.name === channelName && c.type === ChannelType.GuildText);
-    } catch {}
+    let channel = null;
+    if (saved?.textChannelId) {
+      try {
+        const fetched = await guild.channels.fetch(saved.textChannelId);
+        if (fetched?.type === ChannelType.GuildText) channel = fetched;
+      } catch {}
+    }
+    if (!channel) {
+      try {
+        const channels = await guild.channels.fetch();
+        channel = channels.find(c => c.name === channelName && c.type === ChannelType.GuildText);
+      } catch {}
+    }
     if (!channel && category) {
       try {
         channel = await guild.channels.create({
@@ -46,14 +65,22 @@ async function ensureMusicChannels(client) {
       }
     }
 
-    let voice;
-    try {
-      const channels = await guild.channels.fetch();
-      voice = channels.find(c => c.name === voiceName && c.type === ChannelType.GuildVoice);
-    } catch {}
+    let voice = null;
+    if (saved?.voiceChannelId) {
+      try {
+        const fetched = await guild.channels.fetch(saved.voiceChannelId);
+        if (fetched?.type === ChannelType.GuildVoice) voice = fetched;
+      } catch {}
+    }
+    if (!voice) {
+      try {
+        const channels = await guild.channels.fetch();
+        voice = channels.find(c => c.name === voiceName && c.type === ChannelType.GuildVoice);
+      } catch {}
+    }
     if (!voice && category) {
       try {
-        await guild.channels.create({
+        voice = await guild.channels.create({
           name: voiceName,
           type: ChannelType.GuildVoice,
           parent: category.id,
@@ -63,44 +90,49 @@ async function ensureMusicChannels(client) {
       }
     }
 
+    if (category && channel && voice) {
+      db.saveChannelIds(guild.id, category.id, channel.id, voice.id);
+    }
+
     if (channel) setup[guild.id] = channel.id;
   }
   client.musicSetup = setup;
 }
 
 async function clearAndIntroMusicChannels(client) {
+  const { buildIntroEmbed, isIntroMessage } = require('../../functions/intro');
+
   for (const [guildId, channelId] of Object.entries(client.musicSetup || {})) {
     const guild = client.guilds.cache.get(guildId);
     const channel = guild?.channels.cache.get(channelId);
     if (!channel) continue;
 
     try {
-      let fetched;
-      do {
-        fetched = await channel.messages.fetch({ limit: 100 });
-        if (!fetched.size) break;
-        const deleted = await channel.bulkDelete([...fetched.keys()], true);
-        if (!deleted.size) break; // remaining messages are too old to bulk-delete
-      } while (fetched.size === 100);
+      const recent = await channel.messages.fetch({ limit: 20 });
+      const introMsg = recent.find(m => isIntroMessage(m));
+
+      if (introMsg) {
+        let fetched;
+        do {
+          fetched = await channel.messages.fetch({ limit: 100 });
+          if (!fetched.size) break;
+          const toDelete = [...fetched.values()].filter(m => m.id !== introMsg.id);
+          if (toDelete.length) await channel.bulkDelete(toDelete.map(m => m.id), true);
+          if (fetched.size < 100) break;
+        } while (true);
+      } else {
+        let fetched;
+        do {
+          fetched = await channel.messages.fetch({ limit: 100 });
+          if (!fetched.size) break;
+          const deleted = await channel.bulkDelete([...fetched.keys()], true);
+          if (!deleted.size) break;
+        } while (fetched.size === 100);
+
+        await channel.send({ embeds: [buildIntroEmbed(client)] });
+      }
     } catch (err) {
       console.error(`Failed to clear music channel in ${guild.name}:`, err.message);
-    }
-
-    try {
-      const { buildIntroEmbed, isIntroMessage } = require('../../functions/intro');
-      let introExists = false;
-      const recent = await channel.messages.fetch({ limit: 10 });
-      for (const msg of recent.values()) {
-        if (isIntroMessage(msg)) {
-          introExists = true;
-          break;
-        }
-      }
-      if (introExists) return;
-
-      await channel.send({ embeds: [buildIntroEmbed(client)] });
-    } catch (err) {
-      console.error(`Failed to send intro in ${guild.name}:`, err.message);
     }
   }
 }
